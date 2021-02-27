@@ -63,16 +63,25 @@ namespace FatFileFinder
             // Get the files in the directory and record info about them
             try
             {
-                System.IO.FileInfo[] fileNames = path.GetFiles("*.*");
+                // may have too long file name issue
+                // and hve directoryNotFoundException.
+                try {
+                    System.IO.FileInfo[] fileNames = path.GetFiles("*.*");
 
-                foreach (System.IO.FileInfo fi in fileNames)
+                    foreach (System.IO.FileInfo fi in fileNames)
+                    {
+                        files_size += fi.Length;
+                        num_items++;
+                        files.Add(fi);
+                        fDict.Add(fi.Name, fi);
+                    }
+                    total_size = files_size;
+                } catch (Exception)
                 {
-                    files_size += fi.Length;
-                    num_items++;
-                    files.Add(fi);
-                    fDict.Add(fi.Name,fi);
+                    // ignore.
                 }
-                total_size = files_size;
+
+
             }
             catch (System.UnauthorizedAccessException)
             {
@@ -107,7 +116,11 @@ namespace FatFileFinder
                 total_size += t.total_size;
                 num_items += t.num_items;
                 subFolders.Add(t);
-                sfDict.Add(t.path.Name,t);
+                if (t.path != null)
+                {
+                    sfDict.Add(t.path.Name, t);
+                }
+                
 
                 //call the callback
                 if (callback != null)
